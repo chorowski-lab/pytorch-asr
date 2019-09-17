@@ -1,0 +1,16 @@
+#!/bin/bash
+
+shopt -s globstar
+
+src_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+runs_dir=${1:-$src_dir}
+cd $runs_dir
+for x in *; do [ -d $x ] && grep -H WER $x/**/wer_* 2>/dev/null | $src_dir/utils/best_wer.sh; done
+exit 0
+
+# eesen_ds2.yaml
+%WER 6.09 [ 347 / 5700, 27 ins, 85 del, 235 sub ] decode_eval92_test_ees_tg_larger/wer_6
+%WER 8.26 [ 471 / 5700, 51 ins, 89 del, 331 sub ] decode_eval92_test_bg/wer_5
+
+# eesen_ds2.yaml best dev WER checkpoint (middle of training)
+%WER 8.75 [ 499 / 5700, 50 ins, 91 del, 358 sub ] decode_eval92_test_bg_bestdev/wer_7

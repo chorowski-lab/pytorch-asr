@@ -1,0 +1,2 @@
+Generated using
+bash egs/wsj/utils/build_char_lm.sh exp/wsjs5/pydata/fbank80/train_si284/ egs/wsj/train_lm/

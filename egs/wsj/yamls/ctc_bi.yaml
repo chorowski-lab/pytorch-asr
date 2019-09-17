@@ -1,0 +1,122 @@
+Datasets:
+  dev:
+    batch_size: 16
+    class_name: att_speech.data.ConfigurableData
+    dataset:
+      class_name: egs.wsj.data.WSJBigramDataset
+      data_dir: exp/wsjs5/pydata/fbank80/test_dev93/
+      feat_dim:
+      - -1
+      - 3
+      - 81
+      feat_dim_shuffle:
+      - 0
+      - 2
+      - 1
+      feat_input_file: feats.scp
+      feat_pipeline: apply-cmvn exp/wsjs5/pydata/fbank80/train_si284/cmvn %s %s 2>/dev/null
+      graph_generator: &id001
+        class_name: CTCGraphGen
+        context_order: 2
+      vocab_file: egs/wsj/vocabulary.txt
+    num_workers: 1
+    pin_memory: false
+  test:
+    batch_size: 16
+    class_name: att_speech.data.ConfigurableData
+    dataset:
+      class_name: egs.wsj.data.WSJBigramDataset
+      data_dir: exp/wsjs5/pydata/fbank80/test_eval92/
+      feat_dim:
+      - -1
+      - 3
+      - 81
+      feat_dim_shuffle:
+      - 0
+      - 2
+      - 1
+      feat_input_file: feats.scp
+      feat_pipeline: apply-cmvn exp/wsjs5/pydata/fbank80/train_si284/cmvn %s %s 2>/dev/null
+      graph_generator: *id001
+      vocab_file: egs/wsj/vocabulary.txt
+    num_workers: 1
+    pin_memory: false
+  train:
+    batch_size: 16
+    class_name: att_speech.data.ConfigurableData
+    dataset:
+      class_name: egs.wsj.data.WSJBigramDataset
+      data_dir: exp/wsjs5/pydata/fbank80/train_si284/
+      feat_dim:
+      - -1
+      - 3
+      - 81
+      feat_dim_shuffle:
+      - 0
+      - 2
+      - 1
+      feat_input_file: feats.scp
+      feat_pipeline: apply-cmvn exp/wsjs5/pydata/fbank80/train_si284/cmvn %s %s 2>/dev/null
+      graph_generator: *id001
+      vocab_file: egs/wsj/vocabulary.txt
+    num_workers: 4
+    pin_memory: false
+    shuffle: true
+Model:
+  class_name: att_speech.models.SpeechModel
+  decoder:
+    class_name: att_speech.modules.decoders.advanced_decoder.FSTDecoder
+    denominator_red: none
+    graph_generator: *id001
+    normalize_by_dim: 0
+  encoder:
+    class_name: att_speech.modules.encoders.DeepSpeech2
+    conv_kernel_sizes:
+    - - 7
+      - 7
+    - - 7
+      - 7
+    conv_strides:
+    - - 1
+      - 2
+    - - 3
+      - 1
+    rnn_hidden_size: 320
+    rnn_nb_layers: 4
+    rnn_normalization: none
+Trainer:
+  checkpointer:
+    every_n_hours: 4
+  hooks:
+    GradientClipping:
+      clip_norm: 10000.0
+      skip_step_norm: 100000.0
+    KillOnNan:
+      priority: 5
+    LinearIncreaseWeightNoise:
+      modules_supporting_noise:
+      - decoder.fc.0.module.0
+      start_iteration: 20000
+      weight_noise:
+        decoder: 0.15
+        encoder: 0.15
+    PolyakDecay:
+      decay_rates:
+      - 0.9998
+  learning_rate: 0.001
+  learning_rate_scheduler:
+    class_name: att_speech.schedulers.MultiStepLR
+    gamma: 0.5
+    milestones:
+    - 32
+    - 37
+    - 42
+    - 47
+    - 52
+    - 57
+    - 62
+    - 67
+    - 72
+  num_epochs: 85
+  optimizer_name: Adam
+  print_num_decoding_samples: 1
